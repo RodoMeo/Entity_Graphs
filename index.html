@@ -1,0 +1,210 @@
+<<<<<<< HEAD
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Guatemala: Comercio 2017-2023</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0a0f1a; min-height: 100vh; color: #e2e8f0; overflow: hidden; }
+        .header { position: fixed; top: 0; left: 0; right: 0; padding: 20px 40px; background: linear-gradient(180deg, rgba(10,15,26,1) 0%, rgba(10,15,26,0) 100%); z-index: 100; display: flex; justify-content: space-between; align-items: center; }
+        h1 { font-size: 32px; background: linear-gradient(90deg, #f97316, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { color: #64748b; font-size: 14px; }
+        .toggle-container { background: #1e293b; border-radius: 16px; padding: 8px; display: flex; gap: 8px; }
+        .toggle-btn { padding: 16px 40px; border: none; border-radius: 12px; font-size: 24px; font-weight: 800; cursor: pointer; transition: all 0.4s; background: transparent; color: #64748b; }
+        .toggle-btn.active-2017 { background: linear-gradient(135deg, #f97316, #ea580c); color: white; box-shadow: 0 8px 30px rgba(249, 115, 22, 0.5); }
+        .toggle-btn.active-2023 { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; box-shadow: 0 8px 30px rgba(59, 130, 246, 0.5); }
+        .total-display { text-align: right; }
+        .total-label { font-size: 14px; color: #64748b; }
+        .total-value { font-size: 48px; font-weight: 800; }
+        .info-panel { position: fixed; bottom: 30px; left: 30px; background: rgba(15, 23, 42, 0.95); border-radius: 20px; padding: 30px; border: 2px solid #334155; min-width: 400px; z-index: 100; display: none; }
+        .info-panel.active { display: block; }
+        .info-panel h3 { font-size: 28px; margin-bottom: 10px; }
+        .info-type { font-size: 16px; color: #64748b; margin-bottom: 20px; }
+        .info-comparison { display: flex; gap: 30px; align-items: center; }
+        .info-year { text-align: center; }
+        .info-year-label { font-size: 18px; color: #64748b; margin-bottom: 5px; }
+        .info-year-value { font-size: 36px; font-weight: 700; }
+        .info-arrow { font-size: 32px; color: #64748b; }
+        .info-change { font-size: 42px; font-weight: 800; padding: 15px 25px; border-radius: 12px; }
+        .positive { color: #22c55e; background: rgba(34, 197, 94, 0.15); }
+        .negative { color: #ef4444; background: rgba(239, 68, 68, 0.15); }
+        .legend { position: fixed; bottom: 30px; right: 30px; background: rgba(15, 23, 42, 0.9); border-radius: 16px; padding: 25px; z-index: 100; }
+        .legend-title { font-size: 14px; color: #64748b; margin-bottom: 15px; text-transform: uppercase; }
+        .legend-item { display: flex; align-items: center; gap: 15px; margin-bottom: 12px; font-size: 18px; }
+        .legend-dot { width: 24px; height: 24px; border-radius: 50%; }
+        svg { width: 100vw; height: 100vh; }
+        .node { cursor: pointer; }
+        .node circle { stroke: #0a0f1a; stroke-width: 4px; transition: all 0.5s; }
+        .node:hover circle { stroke: #fff; stroke-width: 6px; filter: brightness(1.3); }
+        .node.selected circle { stroke: #fbbf24; stroke-width: 6px; }
+        .node .label-name { font-size: 18px; fill: #fff; font-weight: 600; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); }
+        .node .label-change { font-size: 20px; font-weight: 800; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); }
+        .link { fill: none; stroke-linecap: round; }
+        .instructions { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); font-size: 14px; color: #64748b; background: rgba(15, 23, 42, 0.9); padding: 12px 24px; border-radius: 30px; z-index: 100; }
+    </style>
+</head>
+<body>
+<div class="header">
+    <div><h1>🌐 Guatemala: Evolución del Comercio</h1><p class="subtitle">Entity Graph 2017 → 2023 | Datos: BACI-CEPII</p></div>
+    <div class="toggle-container">
+        <button class="toggle-btn active-2017" id="btn2017" onclick="setYear(2017)">2017</button>
+        <button class="toggle-btn" id="btn2023" onclick="setYear(2023)">2023</button>
+    </div>
+    <div class="total-display"><div class="total-label">EXPORTACIONES TOTALES</div><div class="total-value" id="totalValue" style="color:#f97316"></div></div>
+</div>
+<div class="info-panel" id="infoPanel">
+    <h3 id="infoName"></h3><div class="info-type" id="infoType"></div>
+    <div class="info-comparison">
+        <div class="info-year"><div class="info-year-label">2017</div><div class="info-year-value" id="info2017" style="color:#f97316"></div></div>
+        <div class="info-arrow">→</div>
+        <div class="info-year"><div class="info-year-label">2023</div><div class="info-year-value" id="info2023" style="color:#3b82f6"></div></div>
+        <div class="info-change" id="infoChange"></div>
+    </div>
+</div>
+<div class="legend">
+    <div class="legend-title">Leyenda</div>
+    <div class="legend-item"><div class="legend-dot" id="leg1"></div> <span>Guatemala</span></div>
+    <div class="legend-item"><div class="legend-dot" id="leg2"></div> <span>Productos</span></div>
+    <div class="legend-item"><div class="legend-dot" id="leg3"></div> <span>Destinos</span></div>
+</div>
+<div class="instructions">🖱️ Arrastra nodos · Scroll = zoom · Click = ver cambio</div>
+<svg id="graph"></svg>
+<script>
+const graphData = {"nodes": [{"id": "Guatemala", "group": 1, "v2017": 12153464.785, "v2023": 14823939.719, "cambio": 21.972951592338852}, {"id": "Fruit, edible: bananas, othe", "group": 2, "v2017": 1013487.264, "v2023": 1051424.399, "cambio": 3.7432276011314602}, {"id": "USA", "group": 3, "v2017": 4125073.426, "v2023": 4688156.282, "cambio": 13.650250501019801}, {"id": "Japan", "group": 3, "v2017": 172458.524, "v2023": 161273.326, "cambio": -6.48573218683004}, {"id": "Italy", "group": 3, "v2017": 163750.981, "v2023": 144464.474, "cambio": -11.777948982180453}, {"id": "Coffee: not roasted or decaf", "group": 2, "v2017": 790791.499, "v2023": 959977.1070000001, "cambio": 21.39446468682893}, {"id": "Belgium", "group": 3, "v2017": 97741.162, "v2023": 114967.458, "cambio": 17.624402705586828}, {"id": "Vegetable oils: palm oil and", "group": 2, "v2017": 416203.71499999997, "v2023": 766898.07, "cambio": 84.26026543275809}, {"id": "Netherlands", "group": 3, "v2017": 379154.437, "v2023": 624864.375, "cambio": 64.80471122641775}, {"id": "Spain", "group": 3, "v2017": 138728.207, "v2023": 322851.254, "cambio": 132.72214135947132}, {"id": "Mexico", "group": 3, "v2017": 510959.896, "v2023": 673524.326, "cambio": 31.815496925026764}, {"id": "Sugars: sucrose, chemically ", "group": 2, "v2017": 182451.889, "v2023": 432915.071, "cambio": 137.2762887645411}, {"id": "Chile", "group": 3, "v2017": 128553.749, "v2023": 134961.03600000002, "cambio": 4.984130801195086}, {"id": "Spices: cardamoms, neither c", "group": 2, "v2017": 368250.77, "v2023": 380695.681, "cambio": 3.3794663891673515}, {"id": "Saudi Arabia", "group": 3, "v2017": 110683.33, "v2023": 118798.152, "cambio": 7.331566551169}, {"id": "United Arab Emirates", "group": 3, "v2017": 83748.101, "v2023": 96320.643, "cambio": 15.012330846761524}, {"id": "Jordan", "group": 3, "v2017": 15318.95, "v2023": 37368.702, "cambio": 143.93775030272963}, {"id": "Jerseys, pullovers, cardigan", "group": 2, "v2017": 285505.99899999995, "v2023": 370627.51, "cambio": 29.814263552479716}, {"id": "Canada", "group": 3, "v2017": 529781.129, "v2023": 238431.092, "cambio": -54.99441581657394}, {"id": "El Salvador", "group": 3, "v2017": 1212946.053, "v2023": 1861703.543, "cambio": 53.486095972316086}, {"id": "Medicaments: consisting of m", "group": 2, "v2017": 177580.674, "v2023": 314752.534, "cambio": 77.24481325034276}, {"id": "Honduras", "group": 3, "v2017": 964816.064, "v2023": 1599292.84, "cambio": 65.76142330897177}, {"id": "Nicaragua", "group": 3, "v2017": 567691.57, "v2023": 995558.574, "cambio": 75.36962438952548}, {"id": "T-shirts, singlets and other", "group": 2, "v2017": 186457.124, "v2023": 279834.31200000003, "cambio": 50.07971055050706}, {"id": "Sugars: cane sugar, raw, in ", "group": 2, "v2017": 763715.745, "v2023": 259792.505, "cambio": -65.98308903530594}, {"id": "Other Asia, nes", "group": 3, "v2017": 82770.23, "v2023": 117196.045, "cambio": 41.59202529701802}, {"id": "Fruit, edible: melons, other", "group": 2, "v2017": 172310.592, "v2023": 213487.202, "cambio": 23.896737584187512}], "links": [{"source": "Guatemala", "target": "Fruit, edible: bananas, othe", "v2017": 1013487.264, "v2023": 1051424.399}, {"source": "Fruit, edible: bananas, othe", "target": "USA", "v2017": 731816.841, "v2023": 949803.376}, {"source": "Fruit, edible: bananas, othe", "target": "Japan", "v2017": 4758.393, "v2023": 15076.837}, {"source": "Fruit, edible: bananas, othe", "target": "Italy", "v2017": 17195.692, "v2023": 13818.569}, {"source": "Guatemala", "target": "Coffee: not roasted or decaf", "v2017": 790791.499, "v2023": 959977.1070000001}, {"source": "Coffee: not roasted or decaf", "target": "USA", "v2017": 284599.238, "v2023": 393859.113}, {"source": "Coffee: not roasted or decaf", "target": "Japan", "v2017": 113576.685, "v2023": 114547.319}, {"source": "Coffee: not roasted or decaf", "target": "Belgium", "v2017": 61296.707, "v2023": 77571.429}, {"source": "Guatemala", "target": "Vegetable oils: palm oil and", "v2017": 416203.71499999997, "v2023": 766898.07}, {"source": "Vegetable oils: palm oil and", "target": "Netherlands", "v2017": 171333.313, "v2023": 375192.917}, {"source": "Vegetable oils: palm oil and", "target": "Spain", "v2017": 10667.911, "v2023": 180243.18}, {"source": "Vegetable oils: palm oil and", "target": "Mexico", "v2017": 113747.039, "v2023": 98883.52}, {"source": "Guatemala", "target": "Sugars: sucrose, chemically ", "v2017": 182451.889, "v2023": 432915.071}, {"source": "Sugars: sucrose, chemically ", "target": "Chile", "v2017": 52189.515, "v2023": 87149.971}, {"source": "Sugars: sucrose, chemically ", "target": "USA", "v2017": 2130.24, "v2023": 67899.76}, {"source": "Sugars: sucrose, chemically ", "target": "Mexico", "v2017": 834.461, "v2023": 41124.332}, {"source": "Guatemala", "target": "Spices: cardamoms, neither c", "v2017": 368250.77, "v2023": 380695.681}, {"source": "Spices: cardamoms, neither c", "target": "Saudi Arabia", "v2017": 108523.067, "v2023": 113595.877}, {"source": "Spices: cardamoms, neither c", "target": "United Arab Emirates", "v2017": 79997.407, "v2023": 84017.808}, {"source": "Spices: cardamoms, neither c", "target": "Jordan", "v2017": 13921.76, "v2023": 35934.867}, {"source": "Guatemala", "target": "Jerseys, pullovers, cardigan", "v2017": 285505.99899999995, "v2023": 370627.51}, {"source": "Jerseys, pullovers, cardigan", "target": "USA", "v2017": 280930.821, "v2023": 345563.212}, {"source": "Jerseys, pullovers, cardigan", "target": "Canada", "v2017": 1449.519, "v2023": 5020.46}, {"source": "Jerseys, pullovers, cardigan", "target": "El Salvador", "v2017": 39.002, "v2023": 4719.824}, {"source": "Guatemala", "target": "Medicaments: consisting of m", "v2017": 177580.674, "v2023": 314752.534}, {"source": "Medicaments: consisting of m", "target": "Honduras", "v2017": 38689.462, "v2023": 78693.889}, {"source": "Medicaments: consisting of m", "target": "Nicaragua", "v2017": 32901.289, "v2023": 64221.464}, {"source": "Medicaments: consisting of m", "target": "El Salvador", "v2017": 26512.42, "v2023": 54941.216}, {"source": "Guatemala", "target": "T-shirts, singlets and other", "v2017": 186457.124, "v2023": 279834.31200000003}, {"source": "T-shirts, singlets and other", "target": "USA", "v2017": 165612.925, "v2023": 249307.152}, {"source": "T-shirts, singlets and other", "target": "Mexico", "v2017": 10833.834, "v2023": 5828.339}, {"source": "T-shirts, singlets and other", "target": "Canada", "v2017": 33.663, "v2023": 5669.995}, {"source": "Guatemala", "target": "Sugars: cane sugar, raw, in ", "v2017": 763715.745, "v2023": 259792.505}, {"source": "Sugars: cane sugar, raw, in ", "target": "USA", "v2017": 90147.169, "v2023": 75040.494}, {"source": "Sugars: cane sugar, raw, in ", "target": "Other Asia, nes", "v2017": 53364.159, "v2023": 64593.516}, {"source": "Sugars: cane sugar, raw, in ", "target": "Canada", "v2017": 36733.321, "v2023": 30219.129}, {"source": "Guatemala", "target": "Fruit, edible: melons, other", "v2017": 172310.592, "v2023": 213487.202}, {"source": "Fruit, edible: melons, other", "target": "USA", "v2017": 143246.445, "v2023": 176956.407}, {"source": "Fruit, edible: melons, other", "target": "Canada", "v2017": 27249.559, "v2023": 34584.311}, {"source": "Fruit, edible: melons, other", "target": "El Salvador", "v2017": 352.579, "v2023": 760.899}]};
+const total2017 = 12153464.785;
+const total2023 = 14823939.719;
+let currentYear = 2017;
+const colors2017 = {1: "#f97316", 2: "#fb923c", 3: "#fcd34d", link: "#f97316"};
+const colors2023 = {1: "#3b82f6", 2: "#60a5fa", 3: "#93c5fd", link: "#3b82f6"};
+function formatValue(v) { if (v >= 1000000) return "$" + (v / 1000000).toFixed(2) + "B"; if (v >= 1000) return "$" + (v / 1000).toFixed(0) + "M"; return "$" + v.toFixed(0) + "K"; }
+function formatChange(c) { return (c >= 0 ? "+" : "") + c.toFixed(0) + "%"; }
+document.getElementById("totalValue").textContent = formatValue(total2017);
+const width = window.innerWidth, height = window.innerHeight;
+const svg = d3.select("#graph"), g = svg.append("g");
+svg.call(d3.zoom().scaleExtent([0.2, 4]).on("zoom", (e) => g.attr("transform", e.transform)));
+const nodeScale = d3.scaleSqrt().domain([50000, Math.max(total2017, total2023)]).range([30, 120]);
+const linkScale = d3.scaleLinear().domain([10000, 1100000]).range([3, 20]);
+const link = g.append("g").selectAll("line").data(graphData.links).join("line").attr("class", "link").attr("stroke", colors2017.link).attr("stroke-width", d => linkScale(d.v2017)).attr("stroke-opacity", 0.35);
+const node = g.append("g").selectAll("g").data(graphData.nodes).join("g").attr("class", "node");
+node.append("circle").attr("r", d => nodeScale(d.v2017)).attr("fill", d => colors2017[d.group]);
+node.append("text").attr("class", "label-name").text(d => d.id.length > 22 ? d.id.slice(0, 20) + "…" : d.id).attr("x", d => nodeScale(d.v2017) + 12).attr("y", -8);
+node.append("text").attr("class", "label-change").text(d => formatChange(d.cambio)).attr("x", d => nodeScale(d.v2017) + 12).attr("y", 18).attr("fill", d => d.cambio >= 0 ? "#22c55e" : "#ef4444");
+const simulation = d3.forceSimulation(graphData.nodes).force("link", d3.forceLink(graphData.links).id(d => d.id).distance(220).strength(0.5)).force("charge", d3.forceManyBody().strength(-1500)).force("center", d3.forceCenter(width / 2, height / 2)).force("collision", d3.forceCollide().radius(d => nodeScale(Math.max(d.v2017, d.v2023)) + 50));
+node.call(d3.drag().on("start", (e, d) => { if (!e.active) simulation.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; }).on("drag", (e, d) => { d.fx = e.x; d.fy = e.y; }).on("end", (e, d) => { if (!e.active) simulation.alphaTarget(0); d.fx = null; d.fy = null; }));
+simulation.on("tick", () => { link.attr("x1", d => d.source.x).attr("y1", d => d.source.y).attr("x2", d => d.target.x).attr("y2", d => d.target.y); node.attr("transform", d => "translate(" + d.x + "," + d.y + ")"); });
+node.on("mouseenter", function(e, d) { link.attr("stroke-opacity", l => (l.source.id === d.id || l.target.id === d.id) ? 0.8 : 0.05); node.select("circle").attr("opacity", n => { if (n.id === d.id) return 1; return graphData.links.some(l => (l.source.id === d.id && l.target.id === n.id) || (l.target.id === d.id && l.source.id === n.id)) ? 1 : 0.1; }); node.selectAll("text").attr("opacity", function() { const n = d3.select(this.parentNode).datum(); if (n.id === d.id) return 1; return graphData.links.some(l => (l.source.id === d.id && l.target.id === n.id) || (l.target.id === d.id && l.source.id === n.id)) ? 1 : 0.1; }); });
+node.on("mouseleave", function() { link.attr("stroke-opacity", 0.35); node.select("circle").attr("opacity", 1); node.selectAll("text").attr("opacity", 1); });
+node.on("click", function(e, d) { e.stopPropagation(); node.classed("selected", false); d3.select(this).classed("selected", true); document.getElementById("infoPanel").classList.add("active"); const types = {1: "País exportador", 2: "Producto", 3: "Destino"}; document.getElementById("infoName").textContent = d.id; document.getElementById("infoName").style.color = currentYear === 2017 ? colors2017[d.group] : colors2023[d.group]; document.getElementById("infoType").textContent = types[d.group]; document.getElementById("info2017").textContent = formatValue(d.v2017); document.getElementById("info2023").textContent = formatValue(d.v2023); const el = document.getElementById("infoChange"); el.textContent = formatChange(d.cambio); el.className = "info-change " + (d.cambio >= 0 ? "positive" : "negative"); });
+svg.on("click", () => { node.classed("selected", false); document.getElementById("infoPanel").classList.remove("active"); });
+function setYear(year) { currentYear = year; const colors = year === 2017 ? colors2017 : colors2023; document.getElementById("btn2017").className = "toggle-btn" + (year === 2017 ? " active-2017" : ""); document.getElementById("btn2023").className = "toggle-btn" + (year === 2023 ? " active-2023" : ""); document.getElementById("leg1").style.background = colors[1]; document.getElementById("leg2").style.background = colors[2]; document.getElementById("leg3").style.background = colors[3]; document.getElementById("totalValue").textContent = formatValue(year === 2017 ? total2017 : total2023); document.getElementById("totalValue").style.color = colors[1]; node.select("circle").transition().duration(800).attr("r", d => nodeScale(year === 2017 ? d.v2017 : d.v2023)).attr("fill", d => colors[d.group]); node.select(".label-name").transition().duration(800).attr("x", d => nodeScale(year === 2017 ? d.v2017 : d.v2023) + 12); node.select(".label-change").transition().duration(800).attr("x", d => nodeScale(year === 2017 ? d.v2017 : d.v2023) + 12); link.transition().duration(800).attr("stroke", colors.link).attr("stroke-width", d => linkScale(year === 2017 ? d.v2017 : d.v2023)); simulation.force("collision").radius(d => nodeScale(year === 2017 ? d.v2017 : d.v2023) + 50); simulation.alpha(0.5).restart(); }
+document.getElementById("leg1").style.background = colors2017[1]; document.getElementById("leg2").style.background = colors2017[2]; document.getElementById("leg3").style.background = colors2017[3];
+</script>
+</body>
+=======
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Guatemala: Comercio 2017-2023</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0a0f1a; min-height: 100vh; color: #e2e8f0; overflow: hidden; }
+        .header { position: fixed; top: 0; left: 0; right: 0; padding: 20px 40px; background: linear-gradient(180deg, rgba(10,15,26,1) 0%, rgba(10,15,26,0) 100%); z-index: 100; display: flex; justify-content: space-between; align-items: center; }
+        h1 { font-size: 32px; background: linear-gradient(90deg, #f97316, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { color: #64748b; font-size: 14px; }
+        .toggle-container { background: #1e293b; border-radius: 16px; padding: 8px; display: flex; gap: 8px; }
+        .toggle-btn { padding: 16px 40px; border: none; border-radius: 12px; font-size: 24px; font-weight: 800; cursor: pointer; transition: all 0.4s; background: transparent; color: #64748b; }
+        .toggle-btn.active-2017 { background: linear-gradient(135deg, #f97316, #ea580c); color: white; box-shadow: 0 8px 30px rgba(249, 115, 22, 0.5); }
+        .toggle-btn.active-2023 { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; box-shadow: 0 8px 30px rgba(59, 130, 246, 0.5); }
+        .total-display { text-align: right; }
+        .total-label { font-size: 14px; color: #64748b; }
+        .total-value { font-size: 48px; font-weight: 800; }
+        .info-panel { position: fixed; bottom: 30px; left: 30px; background: rgba(15, 23, 42, 0.95); border-radius: 20px; padding: 30px; border: 2px solid #334155; min-width: 400px; z-index: 100; display: none; }
+        .info-panel.active { display: block; }
+        .info-panel h3 { font-size: 28px; margin-bottom: 10px; }
+        .info-type { font-size: 16px; color: #64748b; margin-bottom: 20px; }
+        .info-comparison { display: flex; gap: 30px; align-items: center; }
+        .info-year { text-align: center; }
+        .info-year-label { font-size: 18px; color: #64748b; margin-bottom: 5px; }
+        .info-year-value { font-size: 36px; font-weight: 700; }
+        .info-arrow { font-size: 32px; color: #64748b; }
+        .info-change { font-size: 42px; font-weight: 800; padding: 15px 25px; border-radius: 12px; }
+        .positive { color: #22c55e; background: rgba(34, 197, 94, 0.15); }
+        .negative { color: #ef4444; background: rgba(239, 68, 68, 0.15); }
+        .legend { position: fixed; bottom: 30px; right: 30px; background: rgba(15, 23, 42, 0.9); border-radius: 16px; padding: 25px; z-index: 100; }
+        .legend-title { font-size: 14px; color: #64748b; margin-bottom: 15px; text-transform: uppercase; }
+        .legend-item { display: flex; align-items: center; gap: 15px; margin-bottom: 12px; font-size: 18px; }
+        .legend-dot { width: 24px; height: 24px; border-radius: 50%; }
+        svg { width: 100vw; height: 100vh; }
+        .node { cursor: pointer; }
+        .node circle { stroke: #0a0f1a; stroke-width: 4px; transition: all 0.5s; }
+        .node:hover circle { stroke: #fff; stroke-width: 6px; filter: brightness(1.3); }
+        .node.selected circle { stroke: #fbbf24; stroke-width: 6px; }
+        .node .label-name { font-size: 18px; fill: #fff; font-weight: 600; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); }
+        .node .label-change { font-size: 20px; font-weight: 800; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); }
+        .link { fill: none; stroke-linecap: round; }
+        .instructions { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); font-size: 14px; color: #64748b; background: rgba(15, 23, 42, 0.9); padding: 12px 24px; border-radius: 30px; z-index: 100; }
+    </style>
+</head>
+<body>
+<div class="header">
+    <div><h1>🌐 Guatemala: Evolución del Comercio</h1><p class="subtitle">Entity Graph 2017 → 2023 | Datos: BACI-CEPII</p></div>
+    <div class="toggle-container">
+        <button class="toggle-btn active-2017" id="btn2017" onclick="setYear(2017)">2017</button>
+        <button class="toggle-btn" id="btn2023" onclick="setYear(2023)">2023</button>
+    </div>
+    <div class="total-display"><div class="total-label">EXPORTACIONES TOTALES</div><div class="total-value" id="totalValue" style="color:#f97316"></div></div>
+</div>
+<div class="info-panel" id="infoPanel">
+    <h3 id="infoName"></h3><div class="info-type" id="infoType"></div>
+    <div class="info-comparison">
+        <div class="info-year"><div class="info-year-label">2017</div><div class="info-year-value" id="info2017" style="color:#f97316"></div></div>
+        <div class="info-arrow">→</div>
+        <div class="info-year"><div class="info-year-label">2023</div><div class="info-year-value" id="info2023" style="color:#3b82f6"></div></div>
+        <div class="info-change" id="infoChange"></div>
+    </div>
+</div>
+<div class="legend">
+    <div class="legend-title">Leyenda</div>
+    <div class="legend-item"><div class="legend-dot" id="leg1"></div> <span>Guatemala</span></div>
+    <div class="legend-item"><div class="legend-dot" id="leg2"></div> <span>Productos</span></div>
+    <div class="legend-item"><div class="legend-dot" id="leg3"></div> <span>Destinos</span></div>
+</div>
+<div class="instructions">🖱️ Arrastra nodos · Scroll = zoom · Click = ver cambio</div>
+<svg id="graph"></svg>
+<script>
+const graphData = {"nodes": [{"id": "Guatemala", "group": 1, "v2017": 12153464.785, "v2023": 14823939.719, "cambio": 21.972951592338852}, {"id": "Fruit, edible: bananas, othe", "group": 2, "v2017": 1013487.264, "v2023": 1051424.399, "cambio": 3.7432276011314602}, {"id": "USA", "group": 3, "v2017": 4125073.426, "v2023": 4688156.282, "cambio": 13.650250501019801}, {"id": "Japan", "group": 3, "v2017": 172458.524, "v2023": 161273.326, "cambio": -6.48573218683004}, {"id": "Italy", "group": 3, "v2017": 163750.981, "v2023": 144464.474, "cambio": -11.777948982180453}, {"id": "Coffee: not roasted or decaf", "group": 2, "v2017": 790791.499, "v2023": 959977.1070000001, "cambio": 21.39446468682893}, {"id": "Belgium", "group": 3, "v2017": 97741.162, "v2023": 114967.458, "cambio": 17.624402705586828}, {"id": "Vegetable oils: palm oil and", "group": 2, "v2017": 416203.71499999997, "v2023": 766898.07, "cambio": 84.26026543275809}, {"id": "Netherlands", "group": 3, "v2017": 379154.437, "v2023": 624864.375, "cambio": 64.80471122641775}, {"id": "Spain", "group": 3, "v2017": 138728.207, "v2023": 322851.254, "cambio": 132.72214135947132}, {"id": "Mexico", "group": 3, "v2017": 510959.896, "v2023": 673524.326, "cambio": 31.815496925026764}, {"id": "Sugars: sucrose, chemically ", "group": 2, "v2017": 182451.889, "v2023": 432915.071, "cambio": 137.2762887645411}, {"id": "Chile", "group": 3, "v2017": 128553.749, "v2023": 134961.03600000002, "cambio": 4.984130801195086}, {"id": "Spices: cardamoms, neither c", "group": 2, "v2017": 368250.77, "v2023": 380695.681, "cambio": 3.3794663891673515}, {"id": "Saudi Arabia", "group": 3, "v2017": 110683.33, "v2023": 118798.152, "cambio": 7.331566551169}, {"id": "United Arab Emirates", "group": 3, "v2017": 83748.101, "v2023": 96320.643, "cambio": 15.012330846761524}, {"id": "Jordan", "group": 3, "v2017": 15318.95, "v2023": 37368.702, "cambio": 143.93775030272963}, {"id": "Jerseys, pullovers, cardigan", "group": 2, "v2017": 285505.99899999995, "v2023": 370627.51, "cambio": 29.814263552479716}, {"id": "Canada", "group": 3, "v2017": 529781.129, "v2023": 238431.092, "cambio": -54.99441581657394}, {"id": "El Salvador", "group": 3, "v2017": 1212946.053, "v2023": 1861703.543, "cambio": 53.486095972316086}, {"id": "Medicaments: consisting of m", "group": 2, "v2017": 177580.674, "v2023": 314752.534, "cambio": 77.24481325034276}, {"id": "Honduras", "group": 3, "v2017": 964816.064, "v2023": 1599292.84, "cambio": 65.76142330897177}, {"id": "Nicaragua", "group": 3, "v2017": 567691.57, "v2023": 995558.574, "cambio": 75.36962438952548}, {"id": "T-shirts, singlets and other", "group": 2, "v2017": 186457.124, "v2023": 279834.31200000003, "cambio": 50.07971055050706}, {"id": "Sugars: cane sugar, raw, in ", "group": 2, "v2017": 763715.745, "v2023": 259792.505, "cambio": -65.98308903530594}, {"id": "Other Asia, nes", "group": 3, "v2017": 82770.23, "v2023": 117196.045, "cambio": 41.59202529701802}, {"id": "Fruit, edible: melons, other", "group": 2, "v2017": 172310.592, "v2023": 213487.202, "cambio": 23.896737584187512}], "links": [{"source": "Guatemala", "target": "Fruit, edible: bananas, othe", "v2017": 1013487.264, "v2023": 1051424.399}, {"source": "Fruit, edible: bananas, othe", "target": "USA", "v2017": 731816.841, "v2023": 949803.376}, {"source": "Fruit, edible: bananas, othe", "target": "Japan", "v2017": 4758.393, "v2023": 15076.837}, {"source": "Fruit, edible: bananas, othe", "target": "Italy", "v2017": 17195.692, "v2023": 13818.569}, {"source": "Guatemala", "target": "Coffee: not roasted or decaf", "v2017": 790791.499, "v2023": 959977.1070000001}, {"source": "Coffee: not roasted or decaf", "target": "USA", "v2017": 284599.238, "v2023": 393859.113}, {"source": "Coffee: not roasted or decaf", "target": "Japan", "v2017": 113576.685, "v2023": 114547.319}, {"source": "Coffee: not roasted or decaf", "target": "Belgium", "v2017": 61296.707, "v2023": 77571.429}, {"source": "Guatemala", "target": "Vegetable oils: palm oil and", "v2017": 416203.71499999997, "v2023": 766898.07}, {"source": "Vegetable oils: palm oil and", "target": "Netherlands", "v2017": 171333.313, "v2023": 375192.917}, {"source": "Vegetable oils: palm oil and", "target": "Spain", "v2017": 10667.911, "v2023": 180243.18}, {"source": "Vegetable oils: palm oil and", "target": "Mexico", "v2017": 113747.039, "v2023": 98883.52}, {"source": "Guatemala", "target": "Sugars: sucrose, chemically ", "v2017": 182451.889, "v2023": 432915.071}, {"source": "Sugars: sucrose, chemically ", "target": "Chile", "v2017": 52189.515, "v2023": 87149.971}, {"source": "Sugars: sucrose, chemically ", "target": "USA", "v2017": 2130.24, "v2023": 67899.76}, {"source": "Sugars: sucrose, chemically ", "target": "Mexico", "v2017": 834.461, "v2023": 41124.332}, {"source": "Guatemala", "target": "Spices: cardamoms, neither c", "v2017": 368250.77, "v2023": 380695.681}, {"source": "Spices: cardamoms, neither c", "target": "Saudi Arabia", "v2017": 108523.067, "v2023": 113595.877}, {"source": "Spices: cardamoms, neither c", "target": "United Arab Emirates", "v2017": 79997.407, "v2023": 84017.808}, {"source": "Spices: cardamoms, neither c", "target": "Jordan", "v2017": 13921.76, "v2023": 35934.867}, {"source": "Guatemala", "target": "Jerseys, pullovers, cardigan", "v2017": 285505.99899999995, "v2023": 370627.51}, {"source": "Jerseys, pullovers, cardigan", "target": "USA", "v2017": 280930.821, "v2023": 345563.212}, {"source": "Jerseys, pullovers, cardigan", "target": "Canada", "v2017": 1449.519, "v2023": 5020.46}, {"source": "Jerseys, pullovers, cardigan", "target": "El Salvador", "v2017": 39.002, "v2023": 4719.824}, {"source": "Guatemala", "target": "Medicaments: consisting of m", "v2017": 177580.674, "v2023": 314752.534}, {"source": "Medicaments: consisting of m", "target": "Honduras", "v2017": 38689.462, "v2023": 78693.889}, {"source": "Medicaments: consisting of m", "target": "Nicaragua", "v2017": 32901.289, "v2023": 64221.464}, {"source": "Medicaments: consisting of m", "target": "El Salvador", "v2017": 26512.42, "v2023": 54941.216}, {"source": "Guatemala", "target": "T-shirts, singlets and other", "v2017": 186457.124, "v2023": 279834.31200000003}, {"source": "T-shirts, singlets and other", "target": "USA", "v2017": 165612.925, "v2023": 249307.152}, {"source": "T-shirts, singlets and other", "target": "Mexico", "v2017": 10833.834, "v2023": 5828.339}, {"source": "T-shirts, singlets and other", "target": "Canada", "v2017": 33.663, "v2023": 5669.995}, {"source": "Guatemala", "target": "Sugars: cane sugar, raw, in ", "v2017": 763715.745, "v2023": 259792.505}, {"source": "Sugars: cane sugar, raw, in ", "target": "USA", "v2017": 90147.169, "v2023": 75040.494}, {"source": "Sugars: cane sugar, raw, in ", "target": "Other Asia, nes", "v2017": 53364.159, "v2023": 64593.516}, {"source": "Sugars: cane sugar, raw, in ", "target": "Canada", "v2017": 36733.321, "v2023": 30219.129}, {"source": "Guatemala", "target": "Fruit, edible: melons, other", "v2017": 172310.592, "v2023": 213487.202}, {"source": "Fruit, edible: melons, other", "target": "USA", "v2017": 143246.445, "v2023": 176956.407}, {"source": "Fruit, edible: melons, other", "target": "Canada", "v2017": 27249.559, "v2023": 34584.311}, {"source": "Fruit, edible: melons, other", "target": "El Salvador", "v2017": 352.579, "v2023": 760.899}]};
+const total2017 = 12153464.785;
+const total2023 = 14823939.719;
+let currentYear = 2017;
+const colors2017 = {1: "#f97316", 2: "#fb923c", 3: "#fcd34d", link: "#f97316"};
+const colors2023 = {1: "#3b82f6", 2: "#60a5fa", 3: "#93c5fd", link: "#3b82f6"};
+function formatValue(v) { if (v >= 1000000) return "$" + (v / 1000000).toFixed(2) + "B"; if (v >= 1000) return "$" + (v / 1000).toFixed(0) + "M"; return "$" + v.toFixed(0) + "K"; }
+function formatChange(c) { return (c >= 0 ? "+" : "") + c.toFixed(0) + "%"; }
+document.getElementById("totalValue").textContent = formatValue(total2017);
+const width = window.innerWidth, height = window.innerHeight;
+const svg = d3.select("#graph"), g = svg.append("g");
+svg.call(d3.zoom().scaleExtent([0.2, 4]).on("zoom", (e) => g.attr("transform", e.transform)));
+const nodeScale = d3.scaleSqrt().domain([50000, Math.max(total2017, total2023)]).range([30, 120]);
+const linkScale = d3.scaleLinear().domain([10000, 1100000]).range([3, 20]);
+const link = g.append("g").selectAll("line").data(graphData.links).join("line").attr("class", "link").attr("stroke", colors2017.link).attr("stroke-width", d => linkScale(d.v2017)).attr("stroke-opacity", 0.35);
+const node = g.append("g").selectAll("g").data(graphData.nodes).join("g").attr("class", "node");
+node.append("circle").attr("r", d => nodeScale(d.v2017)).attr("fill", d => colors2017[d.group]);
+node.append("text").attr("class", "label-name").text(d => d.id.length > 22 ? d.id.slice(0, 20) + "…" : d.id).attr("x", d => nodeScale(d.v2017) + 12).attr("y", -8);
+node.append("text").attr("class", "label-change").text(d => formatChange(d.cambio)).attr("x", d => nodeScale(d.v2017) + 12).attr("y", 18).attr("fill", d => d.cambio >= 0 ? "#22c55e" : "#ef4444");
+const simulation = d3.forceSimulation(graphData.nodes).force("link", d3.forceLink(graphData.links).id(d => d.id).distance(220).strength(0.5)).force("charge", d3.forceManyBody().strength(-1500)).force("center", d3.forceCenter(width / 2, height / 2)).force("collision", d3.forceCollide().radius(d => nodeScale(Math.max(d.v2017, d.v2023)) + 50));
+node.call(d3.drag().on("start", (e, d) => { if (!e.active) simulation.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; }).on("drag", (e, d) => { d.fx = e.x; d.fy = e.y; }).on("end", (e, d) => { if (!e.active) simulation.alphaTarget(0); d.fx = null; d.fy = null; }));
+simulation.on("tick", () => { link.attr("x1", d => d.source.x).attr("y1", d => d.source.y).attr("x2", d => d.target.x).attr("y2", d => d.target.y); node.attr("transform", d => "translate(" + d.x + "," + d.y + ")"); });
+node.on("mouseenter", function(e, d) { link.attr("stroke-opacity", l => (l.source.id === d.id || l.target.id === d.id) ? 0.8 : 0.05); node.select("circle").attr("opacity", n => { if (n.id === d.id) return 1; return graphData.links.some(l => (l.source.id === d.id && l.target.id === n.id) || (l.target.id === d.id && l.source.id === n.id)) ? 1 : 0.1; }); node.selectAll("text").attr("opacity", function() { const n = d3.select(this.parentNode).datum(); if (n.id === d.id) return 1; return graphData.links.some(l => (l.source.id === d.id && l.target.id === n.id) || (l.target.id === d.id && l.source.id === n.id)) ? 1 : 0.1; }); });
+node.on("mouseleave", function() { link.attr("stroke-opacity", 0.35); node.select("circle").attr("opacity", 1); node.selectAll("text").attr("opacity", 1); });
+node.on("click", function(e, d) { e.stopPropagation(); node.classed("selected", false); d3.select(this).classed("selected", true); document.getElementById("infoPanel").classList.add("active"); const types = {1: "País exportador", 2: "Producto", 3: "Destino"}; document.getElementById("infoName").textContent = d.id; document.getElementById("infoName").style.color = currentYear === 2017 ? colors2017[d.group] : colors2023[d.group]; document.getElementById("infoType").textContent = types[d.group]; document.getElementById("info2017").textContent = formatValue(d.v2017); document.getElementById("info2023").textContent = formatValue(d.v2023); const el = document.getElementById("infoChange"); el.textContent = formatChange(d.cambio); el.className = "info-change " + (d.cambio >= 0 ? "positive" : "negative"); });
+svg.on("click", () => { node.classed("selected", false); document.getElementById("infoPanel").classList.remove("active"); });
+function setYear(year) { currentYear = year; const colors = year === 2017 ? colors2017 : colors2023; document.getElementById("btn2017").className = "toggle-btn" + (year === 2017 ? " active-2017" : ""); document.getElementById("btn2023").className = "toggle-btn" + (year === 2023 ? " active-2023" : ""); document.getElementById("leg1").style.background = colors[1]; document.getElementById("leg2").style.background = colors[2]; document.getElementById("leg3").style.background = colors[3]; document.getElementById("totalValue").textContent = formatValue(year === 2017 ? total2017 : total2023); document.getElementById("totalValue").style.color = colors[1]; node.select("circle").transition().duration(800).attr("r", d => nodeScale(year === 2017 ? d.v2017 : d.v2023)).attr("fill", d => colors[d.group]); node.select(".label-name").transition().duration(800).attr("x", d => nodeScale(year === 2017 ? d.v2017 : d.v2023) + 12); node.select(".label-change").transition().duration(800).attr("x", d => nodeScale(year === 2017 ? d.v2017 : d.v2023) + 12); link.transition().duration(800).attr("stroke", colors.link).attr("stroke-width", d => linkScale(year === 2017 ? d.v2017 : d.v2023)); simulation.force("collision").radius(d => nodeScale(year === 2017 ? d.v2017 : d.v2023) + 50); simulation.alpha(0.5).restart(); }
+document.getElementById("leg1").style.background = colors2017[1]; document.getElementById("leg2").style.background = colors2017[2]; document.getElementById("leg3").style.background = colors2017[3];
+</script>
+</body>
+>>>>>>> ceb3c3fc465e34d871a27c49463217a2015eebca
+</html>
